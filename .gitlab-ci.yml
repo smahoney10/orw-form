@@ -16,9 +16,9 @@ pages:
   dependencies:
     - build
   script:
-    - if exist public rmdir /s /q public
-    - mkdir public
-    - xcopy /E /I /Y dist public
+    - if (Test-Path public) { Remove-Item -Recurse -Force public }
+    - New-Item -ItemType Directory -Path public
+    - Copy-Item -Recurse -Force dist\* public\
   artifacts:
     paths:
       - public
