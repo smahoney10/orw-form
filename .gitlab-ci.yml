@@ -1,24 +1,11 @@
 stages:
-  - build
   - deploy
-
-build:
-  stage: build
-  script:
-    - npm ci
-    - npx vite build --base=/
-  artifacts:
-    paths:
-      - dist
 
 pages:
   stage: deploy
-  dependencies:
-    - build
   script:
-    - if (Test-Path public) { Remove-Item -Recurse -Force public }
-    - New-Item -ItemType Directory -Path public
-    - Copy-Item -Recurse -Force dist\* public\
+    - npm ci
+    - npx vite build --base=/ --outDir public
   artifacts:
     paths:
       - public
