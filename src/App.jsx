@@ -6,6 +6,7 @@ import CMSAttestations from './components/CMSAttestations';
 import MetricDefinitions from './components/MetricDefinitions';
 import MetricData from './components/MetricData';
 import ValidationSummary from './components/ValidationSummary';
+import DatabricksConnector from './components/DatabricksConnector';
 import { MODULE_ABBREVIATIONS } from './data/referenceData';
 import './App.css';
 
@@ -210,10 +211,7 @@ function App() {
       reader.onload = (ev) => {
         try {
           const payload = JSON.parse(ev.target.result);
-          if (payload.settings) setSettings(payload.settings);
-          if (payload.cmsAttestations) setAttestationsData(payload.cmsAttestations);
-          if (payload.metricDefinitions) setDefinitionsData(payload.metricDefinitions);
-          if (payload.metricData) setMetricData(payload.metricData);
+          applyImportedPayload(payload);
           alert('Data imported successfully!');
         } catch (err) {
           alert('Error importing file: ' + err.message);
@@ -222,6 +220,13 @@ function App() {
       reader.readAsText(file);
     };
     input.click();
+  };
+
+  const applyImportedPayload = (payload) => {
+    if (payload.settings) setSettings(payload.settings);
+    if (payload.cmsAttestations) setAttestationsData(payload.cmsAttestations);
+    if (payload.metricDefinitions) setDefinitionsData(payload.metricDefinitions);
+    if (payload.metricData) setMetricData(payload.metricData);
   };
 
   const totalErrors = Object.values(validationErrors).reduce((s, a) => s + a.length, 0);
@@ -255,6 +260,8 @@ function App() {
       </header>
 
       <SettingsPanel settings={settings} onSettingsChange={setSettings} />
+
+      <DatabricksConnector onImport={applyImportedPayload} />
 
       <TabNavigation
         activeTab={activeTab}
