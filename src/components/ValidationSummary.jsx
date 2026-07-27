@@ -77,6 +77,27 @@ export default function ValidationSummary({ isOpen, onClose, errors }) {
             )}
           </div>
 
+          {/* Box Checks */}
+          <div className="validation-section">
+            <h3>
+              📦 Box Validation Checks
+              {errors.boxChecks?.length > 0 ? (
+                <span className="error-count">{errors.boxChecks.length}</span>
+              ) : (
+                <span className="success-count">✓</span>
+              )}
+            </h3>
+            {errors.boxChecks?.length > 0 ? (
+              <ul>
+                {errors.boxChecks.map((err, i) => (
+                  <li key={i} className="error-item">{err}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="no-errors">No issues found.</p>
+            )}
+          </div>
+
           {/* Settings */}
           <div className="validation-section">
             <h3>

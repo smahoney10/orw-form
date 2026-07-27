@@ -9,6 +9,7 @@ import ValidationSummary from './components/ValidationSummary';
 import BoxImportChecksPage from './components/BoxImportChecksPage';
 import BoxChecksExplanationPage from './components/BoxChecksExplanationPage';
 import { MODULE_ABBREVIATIONS } from './data/referenceData';
+import { runBoxValidation } from './services/boxValidation';
 import './App.css';
 
 function App() {
@@ -28,7 +29,7 @@ function App() {
 
   // ── Validation Logic ──────────────────────────────────────────────
   const validateAll = useCallback(() => {
-    const errors = { settings: [], attestations: [], definitions: [], data: [] };
+    const errors = { settings: [], attestations: [], definitions: [], data: [], boxChecks: [] };
 
     // Settings
     if (!settings.stateAbbreviation) {
@@ -36,6 +37,14 @@ function App() {
     } else if (settings.stateAbbreviation.length !== 2) {
       errors.settings.push('State Abbreviation must be exactly 2 characters');
     }
+
+    // Run Box Validation Checks
+    const boxValidation = runBoxValidation(definitionsData, metricData, attestationsData, settings);
+    errors.boxChecks = [
+      ...boxValidation.prechecks,
+      ...boxValidation.checks,
+      ...boxValidation.attestationChecks,
+    ];
 
     // Attestations
     attestationsData.forEach((row, i) => {
