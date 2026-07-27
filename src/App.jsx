@@ -7,12 +7,14 @@ import MetricDefinitions from './components/MetricDefinitions';
 import MetricData from './components/MetricData';
 import ValidationSummary from './components/ValidationSummary';
 import DatabricksConnector from './components/DatabricksConnector';
+import BoxImportPage from './components/BoxImportPage';
 import { MODULE_ABBREVIATIONS } from './data/referenceData';
 import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('attestations');
   const [showValidation, setShowValidation] = useState(false);
+  const [showBoxImportPage, setShowBoxImportPage] = useState(false);
 
   const [settings, setSettings] = useState({
     stateAbbreviation: '',
@@ -249,6 +251,9 @@ function App() {
             <button className="btn btn-primary" onClick={exportToExcel} title="Export as Excel">
               📥 Export Excel
             </button>
+            <button className="btn btn-secondary" onClick={() => setShowBoxImportPage(true)}>
+              📘 Box Import Guide
+            </button>
             <button
               className={`btn ${totalErrors > 0 ? 'btn-warning' : 'btn-success'}`}
               onClick={() => setShowValidation(true)}
@@ -259,41 +264,47 @@ function App() {
         </div>
       </header>
 
-      <SettingsPanel settings={settings} onSettingsChange={setSettings} />
+      {showBoxImportPage ? (
+        <BoxImportPage onBack={() => setShowBoxImportPage(false)} />
+      ) : (
+        <>
+          <SettingsPanel settings={settings} onSettingsChange={setSettings} />
 
-      <DatabricksConnector onImport={applyImportedPayload} />
+          <DatabricksConnector onImport={applyImportedPayload} />
 
-      <TabNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        validationCounts={validationCounts}
-      />
-
-      <main className="app-main">
-        {activeTab === 'attestations' && (
-          <CMSAttestations data={attestationsData} onChange={setAttestationsData} />
-        )}
-        {activeTab === 'definitions' && (
-          <MetricDefinitions
-            data={definitionsData}
-            onChange={setDefinitionsData}
-            settings={settings}
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            validationCounts={validationCounts}
           />
-        )}
-        {activeTab === 'data' && (
-          <MetricData
-            data={metricData}
-            onChange={setMetricData}
-            metricDefinitions={definitionsData}
-          />
-        )}
-      </main>
 
-      <ValidationSummary
-        isOpen={showValidation}
-        onClose={() => setShowValidation(false)}
-        errors={validationErrors}
-      />
+          <main className="app-main">
+            {activeTab === 'attestations' && (
+              <CMSAttestations data={attestationsData} onChange={setAttestationsData} />
+            )}
+            {activeTab === 'definitions' && (
+              <MetricDefinitions
+                data={definitionsData}
+                onChange={setDefinitionsData}
+                settings={settings}
+              />
+            )}
+            {activeTab === 'data' && (
+              <MetricData
+                data={metricData}
+                onChange={setMetricData}
+                metricDefinitions={definitionsData}
+              />
+            )}
+          </main>
+
+          <ValidationSummary
+            isOpen={showValidation}
+            onClose={() => setShowValidation(false)}
+            errors={validationErrors}
+          />
+        </>
+      )}
     </div>
   );
 }
