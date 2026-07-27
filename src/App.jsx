@@ -7,6 +7,7 @@ import MetricDefinitions from './components/MetricDefinitions';
 import MetricData from './components/MetricData';
 import ValidationSummary from './components/ValidationSummary';
 import DatabricksConnector from './components/DatabricksConnector';
+import GitImportPanel from './components/GitImportPanel';
 import BoxImportPage from './components/BoxImportPage';
 import { MODULE_ABBREVIATIONS } from './data/referenceData';
 import './App.css';
@@ -271,6 +272,8 @@ function App() {
           <SettingsPanel settings={settings} onSettingsChange={setSettings} />
 
           <DatabricksConnector onImport={applyImportedPayload} />
+
+          <GitImportPanel onImport={applyImportedPayload} />
 
           <TabNavigation
             activeTab={activeTab}
