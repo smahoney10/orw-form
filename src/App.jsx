@@ -6,16 +6,14 @@ import CMSAttestations from './components/CMSAttestations';
 import MetricDefinitions from './components/MetricDefinitions';
 import MetricData from './components/MetricData';
 import ValidationSummary from './components/ValidationSummary';
-import DatabricksConnector from './components/DatabricksConnector';
-import GitImportPanel from './components/GitImportPanel';
-import BoxImportPage from './components/BoxImportPage';
+import BoxImportChecksPage from './components/BoxImportChecksPage';
 import { MODULE_ABBREVIATIONS } from './data/referenceData';
 import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('attestations');
   const [showValidation, setShowValidation] = useState(false);
-  const [showBoxImportPage, setShowBoxImportPage] = useState(false);
+  const [showBoxChecks, setShowBoxChecks] = useState(false);
 
   const [settings, setSettings] = useState({
     stateAbbreviation: '',
@@ -252,8 +250,8 @@ function App() {
             <button className="btn btn-primary" onClick={exportToExcel} title="Export as Excel">
               📥 Export Excel
             </button>
-            <button className="btn btn-secondary" onClick={() => setShowBoxImportPage(true)}>
-              📘 Box Import Guide
+            <button className="btn btn-secondary" onClick={() => setShowBoxChecks(true)}>
+              📋 Box Checks
             </button>
             <button
               className={`btn ${totalErrors > 0 ? 'btn-warning' : 'btn-success'}`}
@@ -265,15 +263,11 @@ function App() {
         </div>
       </header>
 
-      {showBoxImportPage ? (
-        <BoxImportPage onBack={() => setShowBoxImportPage(false)} />
+      {showBoxChecks ? (
+        <BoxImportChecksPage onBack={() => setShowBoxChecks(false)} />
       ) : (
         <>
           <SettingsPanel settings={settings} onSettingsChange={setSettings} />
-
-          <DatabricksConnector onImport={applyImportedPayload} />
-
-          <GitImportPanel onImport={applyImportedPayload} />
 
           <TabNavigation
             activeTab={activeTab}
