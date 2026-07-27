@@ -1,13 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchDatabricksWorkspaceContent, parsePythonCode, tryParseJsonContent } from '../services/databricks';
+import { clearDatabricksToken, extractHashToken, getDatabricksOAuthUrl, loadDatabricksToken, saveDatabricksToken } from '../services/databricksOAuth';
 
 function DatabricksConnector({ onImport }) {
   const [workspaceHost, setWorkspaceHost] = useState('cms-dataconnect.cloud.databricks.com');
   const [token, setToken] = useState('');
   const [workspacePath, setWorkspacePath] = useState('/Workspace/Users/you@example.com/my-notebook');
+  const [clientId, setClientId] = useState('');
+  const [redirectUri, setRedirectUri] = useState('http://localhost:5173');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
+
+  useEffect(() => {
+    const storedToken = loadDatabricksToken();
+    if (storedToken) {
+      setToken(storedToken);
+    }
+
+    const hashToken = extractHashToken(window.location.hash);
+    if (hashToken) {
+      setToken(hashToken);
+      saveDatabricksToken(hashToken);
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    }
+  }, []);
+
+  const handleOAuthLogin = () => {
+    try {
+      const authUrl = getDatabricksOAuthUrl({ workspaceHost, clientId, redirectUri });
+      window.open(authUrl, '_blank', 'noopener,noreferrer');
+      setStatus('Open the Databricks sign-in window and complete authentication.');
+    } catch (err) {
+      setError(err.message || 'Unable to start Databricks sign-in.');
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -76,6 +103,26 @@ function DatabricksConnector({ onImport }) {
           </div>
 
           <div className="settings-field">
+            <label htmlFor="clientId">OAuth client ID</label>
+            <input
+              id="clientId"
+              value={clientId}
+              onChange={(event) => setClientId(event.target.value)}
+              placeholder="Databricks OAuth app client ID"
+            />
+          </div>
+
+          <div className="settings-field">
+            <label htmlFor="redirectUri">Redirect URI</label>
+            <input
+              id="redirectUri"
+              value={redirectUri}
+              onChange={(event) => setRedirectUri(event.target.value)}
+              placeholder="http://localhost:5173"
+            />
+          </div>
+
+          <div className="settings-field">
             <label htmlFor="token">Databricks access token</label>
             <input
               id="token"
@@ -87,10 +134,15 @@ function DatabricksConnector({ onImport }) {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="btn btn-secondary" type="button" onClick={handleOAuthLogin}>
+              Sign in with Databricks
+            </button>
             <button className="btn btn-primary" type="submit" disabled={loading}>
               {loading ? 'Loading...' : 'Import from Databricks'}
             </button>
-            <span className="settings-summary">Use a Databricks bearer token or PAT if your organization allows it. If PATs are disabled, your admin will need to provide an alternate approved token method.</span>
+            <button className="btn btn-secondary" type="button" onClick={() => { clearDatabricksToken(); setToken(''); setStatus('Cleared saved token.'); }}>
+              Clear token
+            </button>
           </div>
 
           {error ? <div className="field-error">{error}</div> : null}
