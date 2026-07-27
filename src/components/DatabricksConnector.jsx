@@ -76,13 +76,13 @@ function DatabricksConnector({ onImport }) {
           </div>
 
           <div className="settings-field">
-            <label htmlFor="token">Personal access token</label>
+            <label htmlFor="token">Databricks access token</label>
             <input
               id="token"
               type="password"
               value={token}
               onChange={(event) => setToken(event.target.value)}
-              placeholder="Enter token"
+              placeholder="Enter bearer token or PAT"
             />
           </div>
 
@@ -90,7 +90,7 @@ function DatabricksConnector({ onImport }) {
             <button className="btn btn-primary" type="submit" disabled={loading}>
               {loading ? 'Loading...' : 'Import from Databricks'}
             </button>
-            <span className="settings-summary">Use a token from your Databricks profile. For the workspace link you shared, paste the full URL in the host field and provide the exact Databricks workspace path in the path field.</span>
+            <span className="settings-summary">Use a Databricks bearer token or PAT if your organization allows it. If PATs are disabled, your admin will need to provide an alternate approved token method.</span>
           </div>
 
           {error ? <div className="field-error">{error}</div> : null}
