@@ -7,6 +7,7 @@ import MetricDefinitions from './components/MetricDefinitions';
 import MetricData from './components/MetricData';
 import ValidationSummary from './components/ValidationSummary';
 import BoxImportChecksPage from './components/BoxImportChecksPage';
+import BoxChecksExplanationPage from './components/BoxChecksExplanationPage';
 import { MODULE_ABBREVIATIONS } from './data/referenceData';
 import './App.css';
 
@@ -14,6 +15,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('attestations');
   const [showValidation, setShowValidation] = useState(false);
   const [showBoxChecks, setShowBoxChecks] = useState(false);
+  const [showBoxExplanation, setShowBoxExplanation] = useState(false);
 
   const [settings, setSettings] = useState({
     stateAbbreviation: '',
@@ -253,6 +255,9 @@ function App() {
             <button className="btn btn-secondary" onClick={() => setShowBoxChecks(true)}>
               📋 Box Checks
             </button>
+            <button className="btn btn-secondary" onClick={() => setShowBoxExplanation(true)}>
+              🧠 Box Checks Explain
+            </button>
             <button
               className={`btn ${totalErrors > 0 ? 'btn-warning' : 'btn-success'}`}
               onClick={() => setShowValidation(true)}
@@ -265,6 +270,8 @@ function App() {
 
       {showBoxChecks ? (
         <BoxImportChecksPage onBack={() => setShowBoxChecks(false)} />
+      ) : showBoxExplanation ? (
+        <BoxChecksExplanationPage onBack={() => setShowBoxExplanation(false)} />
       ) : (
         <>
           <SettingsPanel settings={settings} onSettingsChange={setSettings} />
