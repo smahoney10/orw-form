@@ -8,6 +8,7 @@ import MetricData from './components/MetricData';
 import ValidationSummary from './components/ValidationSummary';
 import BoxImportChecksPage from './components/BoxImportChecksPage';
 import BoxChecksExplanationPage from './components/BoxChecksExplanationPage';
+import UploadValidationPage from './components/UploadValidationPage';
 import { MODULE_ABBREVIATIONS } from './data/referenceData';
 import { runBoxValidation } from './services/boxValidation';
 import './App.css';
@@ -17,6 +18,7 @@ function App() {
   const [showValidation, setShowValidation] = useState(false);
   const [showBoxChecks, setShowBoxChecks] = useState(false);
   const [showBoxExplanation, setShowBoxExplanation] = useState(false);
+  const [showUploadValidation, setShowUploadValidation] = useState(false);
 
   const [settings, setSettings] = useState({
     stateAbbreviation: '',
@@ -267,6 +269,9 @@ function App() {
             <button className="btn btn-secondary" onClick={() => setShowBoxExplanation(true)}>
               🧠 Box Checks Explain
             </button>
+            <button className="btn btn-secondary" onClick={() => setShowUploadValidation(true)}>
+              📤 Upload & Validate
+            </button>
             <button
               className={`btn ${totalErrors > 0 ? 'btn-warning' : 'btn-success'}`}
               onClick={() => setShowValidation(true)}
@@ -281,6 +286,8 @@ function App() {
         <BoxImportChecksPage onBack={() => setShowBoxChecks(false)} />
       ) : showBoxExplanation ? (
         <BoxChecksExplanationPage onBack={() => setShowBoxExplanation(false)} />
+      ) : showUploadValidation ? (
+        <UploadValidationPage onBack={() => setShowUploadValidation(false)} />
       ) : (
         <>
           <SettingsPanel settings={settings} onSettingsChange={setSettings} />
