@@ -80,8 +80,6 @@ function runBoxChecks(definitions, values, { stateAbbreviation, fileName }) {
   missing(9, definitions, 'valueType', 'Value Type is missing.');
   missing(22, values, 'metricId', 'Metric ID is missing.');
   missing(24, values, 'measureCount', 'Measure Count is missing.');
-  missing(27, values, 'numerator', 'Numerator is missing.');
-  missing(28, values, 'denominator', 'Denominator is missing.');
 
   values.forEach((row, index) => {
     if (!isBlank(row.numerator) && !isNumeric(row.numerator)) issues.push(`Check 29 (${rowLabel(row, index)}): Numerator must be numeric.`);

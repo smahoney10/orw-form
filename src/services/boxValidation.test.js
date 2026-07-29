@@ -11,10 +11,12 @@ test('runs the numbered box checks supplied in box_checks.py', () => {
     stateAbbreviation: 'CA',
   });
 
-  for (const check of [3, 6, 9, 28, 29, 32, 35, 37]) {
+  for (const check of [3, 6, 9, 29, 32, 35, 37]) {
     assert.ok(result.checks.some((issue) => issue.startsWith(`Check ${check}`)), `Check ${check} should fail`);
   }
   assert.ok(!result.checks.some((issue) => issue.startsWith('Check 2')));
+  assert.ok(!result.checks.some((issue) => issue.startsWith('Check 27')));
+  assert.ok(!result.checks.some((issue) => issue.startsWith('Check 28')));
 });
 
 test('requires the paired IOPAA IDs when an IO metric is reported', () => {
