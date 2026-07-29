@@ -28,6 +28,11 @@ test('requires the paired IOPAA IDs when an IO metric is reported', () => {
   assert.ok(result.checks.some((issue) => issue.startsWith('Check 39')));
 });
 
+test('does not run workbook prechecks while a new ORW is being created', () => {
+  const result = runBoxValidation([], [], [], { includePrechecks: false });
+  assert.deepEqual(result.prechecks, []);
+});
+
 test('accepts Databricks module abbreviations for Check 38', () => {
   const result = runBoxValidation([{ metricId: 'MA-CR-PBM-01.01', module: 'PBM' }], [], [], {
     fileName: 'Operational_Report_MA_PBM_2026-01-01.xlsx',

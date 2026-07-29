@@ -10,9 +10,9 @@ const isInteger = (value) => isNumeric(value) && Number(String(value).trim()) % 
 // Mirrors the checks supplied in box_checks.py. A returned item represents a
 // source rule that failed; checks intentionally absent from that file are not run.
 export function runBoxValidation(metricDefinitions = [], metricData = [], attestations = [], options = {}) {
-  const { fileName = '', sheetNames = [], workbookReadable = true, stateAbbreviation = '' } = options;
+  const { fileName = '', sheetNames = [], workbookReadable = true, stateAbbreviation = '', includePrechecks = true } = options;
   return {
-    prechecks: runPrechecks({ metricDefinitions, metricData, attestations, fileName, sheetNames, workbookReadable }),
+    prechecks: includePrechecks ? runPrechecks({ metricDefinitions, metricData, attestations, fileName, sheetNames, workbookReadable }) : [],
     checks: runBoxChecks(metricDefinitions, metricData, { stateAbbreviation, fileName }),
     // Attestation validation is intentionally paused while the workbook rules are finalized.
     attestationChecks: ATTESTATION_CHECKS_ENABLED ? runAttestationChecks(metricDefinitions, attestations) : [],
@@ -96,7 +96,9 @@ function runBoxChecks(definitions, values, { stateAbbreviation, fileName }) {
   });
   missing(37, values, 'programType', 'Program Type is missing.');
 
-  const validModuleTypes = new Set(Object.values(MODULE_ABBREVIATIONS));
+  // Uploaded V3 workbooks use module abbreviations; the creation form uses the
+  // corresponding human-readable module names until it is exported.
+  const validModuleTypes = new Set([...Object.values(MODULE_ABBREVIATIONS), ...Object.keys(MODULE_ABBREVIATIONS)]);
   definitions.forEach((row, index) => {
     if (!isBlank(row.metricId) && !validModuleTypes.has(String(row.module).trim())) issues.push(`Check 38 (${rowLabel(row, index)}): Module "${row.module || 'blank'}" is not a valid module.`);
   });

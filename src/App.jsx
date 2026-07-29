@@ -41,7 +41,10 @@ function App() {
     }
 
     // Run Box Validation Checks
-    const boxValidation = runBoxValidation(definitionsData, metricData, attestationsData, settings);
+    const boxValidation = runBoxValidation(definitionsData, metricData, attestationsData, {
+      stateAbbreviation: settings.stateAbbreviation,
+      includePrechecks: false,
+    });
     errors.boxChecks = [
       ...boxValidation.prechecks,
       ...boxValidation.checks,
