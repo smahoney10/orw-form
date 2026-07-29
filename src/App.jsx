@@ -252,7 +252,7 @@ function App() {
     }
     setWorkflowMode('create');
     setWorkflowStep(0);
-    setActiveTab('attestations');
+    setActiveTab('settings');
     setScreen('workspace');
   };
 
