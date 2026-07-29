@@ -1,4 +1,39 @@
+import { useState } from 'react';
+import { fetchDatabricksWorkspaceContent } from '../services/databricks';
+import { extractBoxCheckDescriptions } from '../services/boxChecksParser';
+
 function BoxChecksExplanationPage({ onBack }) {
+  const [workspaceHost, setWorkspaceHost] = useState('cms-dataconnect.cloud.databricks.com');
+  const [workspacePath, setWorkspacePath] = useState('/Workspace/Users/you@example.com/box_checks.py');
+  const [token, setToken] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [sourceContent, setSourceContent] = useState('');
+  const [parsedChecks, setParsedChecks] = useState([]);
+
+  const handleImport = async () => {
+    if (!workspaceHost || !workspacePath || !token) {
+      setError('Please provide the workspace host, workspace path, and token.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSourceContent('');
+    setParsedChecks([]);
+
+    try {
+      const content = await fetchDatabricksWorkspaceContent({ workspaceHost, token, path: workspacePath });
+      const extracted = extractBoxCheckDescriptions(content);
+      setSourceContent(content);
+      setParsedChecks(extracted);
+    } catch (err) {
+      setError(err.message || 'Unable to load the file from Databricks.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sections = [
     {
       title: 'Checks 1 through 39',
@@ -88,6 +123,52 @@ function BoxChecksExplanationPage({ onBack }) {
           This page is intended to explain the validation logic in the Box import Python files.
           The files referenced below are expected to live in the Box import folder for this project.
         </p>
+
+        <div className="settings-panel" style={{ marginBottom: '16px' }}>
+          <div className="settings-field">
+            <label htmlFor="workspaceHost">Databricks workspace host</label>
+            <input
+              id="workspaceHost"
+              value={workspaceHost}
+              onChange={(event) => setWorkspaceHost(event.target.value)}
+              placeholder="cms-dataconnect.cloud.databricks.com"
+            />
+          </div>
+          <div className="settings-field">
+            <label htmlFor="workspacePath">Workspace path to box_checks.py</label>
+            <input
+              id="workspacePath"
+              value={workspacePath}
+              onChange={(event) => setWorkspacePath(event.target.value)}
+              placeholder="/Workspace/Users/you@example.com/box_checks.py"
+            />
+          </div>
+          <div className="settings-field">
+            <label htmlFor="token">Databricks token</label>
+            <input
+              id="token"
+              type="password"
+              value={token}
+              onChange={(event) => setToken(event.target.value)}
+              placeholder="Bearer token or PAT"
+            />
+          </div>
+          <button className="btn btn-primary" type="button" onClick={handleImport} disabled={loading}>
+            {loading ? 'Loading...' : 'Load checks from Databricks'}
+          </button>
+          {error ? <div className="field-error">{error}</div> : null}
+        </div>
+
+        {parsedChecks.length > 0 ? (
+          <div style={{ marginBottom: '16px' }}>
+            <h3>Checks found in the Databricks file</h3>
+            <ul>
+              {parsedChecks.map((check) => (
+                <li key={check}>{check}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {sections.map((section) => (
           <div key={section.title}>
