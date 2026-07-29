@@ -928,3 +928,99 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--gray-500);
 }
+
+/* ── Guided workflow home ────────────────────────────────────── */
+.workflow-home,
+.submission-workspace {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.workflow-home { padding: 52px 0 72px; }
+
+.workflow-hero {
+  max-width: 720px;
+  margin-bottom: 32px;
+}
+
+.eyebrow,
+.stage-count {
+  color: var(--primary-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.workflow-hero h2,
+.submission-stage h2 {
+  color: var(--primary-dark);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.08;
+  margin: 0 0 12px;
+}
+
+.workflow-hero > p:last-child { font-size: 1.12rem; line-height: 1.65; }
+
+.workflow-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-card {
+  background: #fff;
+  border: 1px solid var(--gray-300);
+  border-top: 5px solid var(--primary);
+  box-shadow: 0 8px 22px rgba(10, 62, 102, 0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 26px;
+}
+
+.workflow-card:hover { box-shadow: 0 12px 28px rgba(10, 62, 102, 0.16); }
+
+.workflow-card-heading { align-items: flex-start; display: flex; gap: 14px; }
+.workflow-card h3 { color: var(--primary-dark); font-size: 1.28rem; line-height: 1.25; margin: 3px 0 10px; }
+.workflow-number { color: var(--primary); font-family: Georgia, 'Times New Roman', serif; font-size: 1.75rem; font-weight: 700; line-height: 1; }
+.workflow-card > p { line-height: 1.55; margin: 4px 0 14px; }
+.workflow-card ol { flex: 1; line-height: 1.55; margin: 0 0 22px 20px; padding: 0; }
+.workflow-card li { margin-bottom: 4px; }
+.workflow-card .btn { align-self: flex-start; }
+
+.submission-workspace {
+  display: grid;
+  gap: 34px;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 3fr);
+  padding: 38px 0 64px;
+}
+
+.submission-steps { border-right: 1px solid var(--gray-300); padding-right: 22px; }
+.submission-steps ol { list-style: none; margin: 0; padding: 0; }
+.submission-steps li { border-left: 3px solid var(--gray-300); margin: 0; padding: 0 0 10px 14px; }
+.submission-steps li.is-current { border-left-color: var(--primary); }
+.submission-steps li.is-complete { border-left-color: var(--success); }
+.submission-steps button { background: transparent; border: 0; color: var(--gray-700); cursor: pointer; font: inherit; padding: 2px 0; text-align: left; }
+.submission-steps button:hover,
+.submission-steps button:focus-visible { color: var(--primary-dark); text-decoration: underline; }
+.submission-steps button span { align-items: center; background: var(--gray-200); border-radius: 50%; color: var(--gray-700); display: inline-flex; font-size: 0.75rem; font-weight: 800; height: 22px; justify-content: center; margin-right: 8px; width: 22px; }
+.submission-steps .is-current button span { background: var(--primary); color: #fff; }
+.submission-steps .is-complete button span { background: var(--success); color: #fff; }
+
+.submission-stage { min-width: 0; }
+.submission-stage > p:not(.stage-count) { font-size: 1.05rem; line-height: 1.55; margin: 0 0 22px; }
+.stage-content > .settings-panel { margin: 0; }
+.stage-actions { display: flex; gap: 12px; justify-content: space-between; margin-top: 28px; }
+.stage-actions .btn-primary { margin-left: auto; }
+
+@media (max-width: 760px) {
+  .workflow-home,
+  .submission-workspace { width: min(100% - 28px, 1180px); }
+  .workflow-grid,
+  .submission-workspace { grid-template-columns: 1fr; }
+  .submission-steps { border-bottom: 1px solid var(--gray-300); border-right: 0; padding: 0 0 16px; }
+  .submission-steps ol { display: grid; gap: 7px; grid-template-columns: 1fr 1fr; }
+  .submission-steps li { padding-bottom: 2px; }
+}

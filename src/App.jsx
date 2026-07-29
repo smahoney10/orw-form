@@ -1,24 +1,24 @@
 import { useState, useMemo, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import SettingsPanel from './components/SettingsPanel';
-import TabNavigation from './components/TabNavigation';
 import CMSAttestations from './components/CMSAttestations';
 import MetricDefinitions from './components/MetricDefinitions';
 import MetricData from './components/MetricData';
 import ValidationSummary from './components/ValidationSummary';
-import BoxImportChecksPage from './components/BoxImportChecksPage';
 import BoxChecksExplanationPage from './components/BoxChecksExplanationPage';
 import UploadValidationPage from './components/UploadValidationPage';
+import WorkflowHome from './components/WorkflowHome';
+import SubmissionGuide from './components/SubmissionGuide';
 import { MODULE_ABBREVIATIONS } from './data/referenceData';
 import { runBoxValidation } from './services/boxValidation';
 import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('attestations');
+  const [screen, setScreen] = useState('home');
+  const [workflowMode, setWorkflowMode] = useState('create');
+  const [workflowStep, setWorkflowStep] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
-  const [showBoxChecks, setShowBoxChecks] = useState(false);
-  const [showBoxExplanation, setShowBoxExplanation] = useState(false);
-  const [showUploadValidation, setShowUploadValidation] = useState(false);
 
   const [settings, setSettings] = useState({
     stateAbbreviation: '',
@@ -101,28 +101,6 @@ function App() {
   }, [settings, attestationsData, definitionsData, metricData]);
 
   const validationErrors = useMemo(() => validateAll(), [validateAll]);
-
-  // ── Validation Counts for Tab Badges ──────────────────────────────
-  const validationCounts = useMemo(() => {
-    const attComplete = attestationsData.filter((r) => {
-      return r.relatedSystem && r.applicable && (r.applicable !== 'No' || r.justification);
-    }).length;
-
-    const defComplete = definitionsData.filter((r) => {
-      return r.module && r.relatedSystem && r.outcomeRef && r.metricId && r.metricName &&
-        r.metricDescription && r.valueType && r.frequency && r.status;
-    }).length;
-
-    const dataComplete = metricData.filter((r) => {
-      return r.reportingDate && r.metricId && r.programType && (r.metricValue || r.comment);
-    }).length;
-
-    return {
-      attestations: { complete: attComplete, total: attestationsData.length },
-      definitions: { complete: defComplete, total: definitionsData.length },
-      data: { complete: dataComplete, total: metricData.length },
-    };
-  }, [attestationsData, definitionsData, metricData]);
 
   // ── Export to Excel ───────────────────────────────────────────────
   const exportToExcel = () => {
@@ -226,7 +204,10 @@ function App() {
         try {
           const payload = JSON.parse(ev.target.result);
           applyImportedPayload(payload);
-          alert('Data imported successfully!');
+          setWorkflowMode('import');
+          setWorkflowStep(0);
+          setActiveTab('attestations');
+          setScreen('workspace');
         } catch (err) {
           alert('Error importing file: ' + err.message);
         }
@@ -245,6 +226,42 @@ function App() {
 
   const totalErrors = Object.values(validationErrors).reduce((s, a) => s + a.length, 0);
 
+  const createSteps = [
+    { title: 'Choose state and abbreviation', description: 'Enter the reporting state before creating the ORW submission.', tab: 'settings' },
+    { title: 'Select attestations', description: 'Select and complete the CMS attestations that apply to this submission.', tab: 'attestations' },
+    { title: 'Metric definitions', description: 'Define each metric you will report.', tab: 'definitions' },
+    { title: 'Metric data', description: 'Enter the reported values for each metric.', tab: 'data' },
+    { title: 'Export to Excel', description: 'Review the workbook and export the Excel file for Box submission.', action: 'excel' },
+    { title: 'Export JSON', description: 'Save a JSON copy so the report can be continued in a future period.', action: 'json' },
+  ];
+  const importSteps = createSteps.slice(1);
+  const workflowSteps = workflowMode === 'import' ? importSteps : createSteps;
+
+  const openWorkflow = (mode) => {
+    if (mode === 'import') {
+      importFromJson();
+      return;
+    }
+    if (mode === 'validate') {
+      setScreen('upload');
+      return;
+    }
+    if (mode === 'learn') {
+      setScreen('explain');
+      return;
+    }
+    setWorkflowMode('create');
+    setWorkflowStep(0);
+    setActiveTab('attestations');
+    setScreen('workspace');
+  };
+
+  const changeWorkflowStep = (nextStep) => {
+    const next = workflowSteps[nextStep];
+    setWorkflowStep(nextStep);
+    if (next.tab) setActiveTab(next.tab);
+  };
+
   return (
     <div className="app">
       <header className="app-header">
@@ -254,77 +271,26 @@ function App() {
             <p className="subtitle">MES Metrics — CMS Operational Reporting</p>
           </div>
           <div className="header-actions">
-            <button className="btn btn-secondary" onClick={importFromJson} title="Import from JSON">
-              📂 Import
-            </button>
-            <button className="btn btn-secondary" onClick={exportToJson} title="Export as JSON">
-              💾 JSON
-            </button>
-            <button className="btn btn-primary" onClick={exportToExcel} title="Export as Excel">
-              📥 Export Excel
-            </button>
-            <button className="btn btn-secondary" onClick={() => setShowBoxChecks(true)}>
-              📋 Box Checks
-            </button>
-            <button className="btn btn-secondary" onClick={() => setShowBoxExplanation(true)}>
-              🧠 Box Checks Explain
-            </button>
-            <button className="btn btn-secondary" onClick={() => setShowUploadValidation(true)}>
-              📤 Upload & Validate
-            </button>
-            <button
-              className={`btn ${totalErrors > 0 ? 'btn-warning' : 'btn-success'}`}
-              onClick={() => setShowValidation(true)}
-            >
-              {totalErrors > 0 ? `⚠️ ${totalErrors} Issues` : '✅ Valid'}
-            </button>
+            {screen !== 'home' ? <button className="btn btn-secondary" onClick={() => setScreen('home')}>All workflows</button> : null}
+            {screen === 'workspace' ? <button className={`btn ${totalErrors > 0 ? 'btn-warning' : 'btn-success'}`} onClick={() => setShowValidation(true)}>{totalErrors > 0 ? `${totalErrors} issues` : 'Ready to review'}</button> : null}
           </div>
         </div>
       </header>
 
-      {showBoxChecks ? (
-        <BoxImportChecksPage onBack={() => setShowBoxChecks(false)} />
-      ) : showBoxExplanation ? (
-        <BoxChecksExplanationPage onBack={() => setShowBoxExplanation(false)} />
-      ) : showUploadValidation ? (
-        <UploadValidationPage onBack={() => setShowUploadValidation(false)} />
-      ) : (
-        <>
-          <SettingsPanel settings={settings} onSettingsChange={setSettings} />
-
-          <TabNavigation
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            validationCounts={validationCounts}
-          />
-
-          <main className="app-main">
-            {activeTab === 'attestations' && (
-              <CMSAttestations data={attestationsData} onChange={setAttestationsData} />
-            )}
-            {activeTab === 'definitions' && (
-              <MetricDefinitions
-                data={definitionsData}
-                onChange={setDefinitionsData}
-                settings={settings}
-              />
-            )}
-            {activeTab === 'data' && (
-              <MetricData
-                data={metricData}
-                onChange={setMetricData}
-                metricDefinitions={definitionsData}
-              />
-            )}
-          </main>
-
-          <ValidationSummary
-            isOpen={showValidation}
-            onClose={() => setShowValidation(false)}
-            errors={validationErrors}
-          />
-        </>
-      )}
+      {screen === 'home' ? <WorkflowHome onChoose={openWorkflow} /> : null}
+      {screen === 'explain' ? <BoxChecksExplanationPage onBack={() => setScreen('home')} /> : null}
+      {screen === 'upload' ? <UploadValidationPage onBack={() => setScreen('home')} /> : null}
+      {screen === 'workspace' ? (
+        <SubmissionGuide steps={workflowSteps} currentStep={workflowStep} onStepChange={changeWorkflowStep}>
+          {activeTab === 'settings' ? <SettingsPanel settings={settings} onSettingsChange={setSettings} /> : null}
+          {activeTab === 'attestations' ? <CMSAttestations data={attestationsData} onChange={setAttestationsData} /> : null}
+          {activeTab === 'definitions' ? <MetricDefinitions data={definitionsData} onChange={setDefinitionsData} settings={settings} /> : null}
+          {activeTab === 'data' ? <MetricData data={metricData} onChange={setMetricData} metricDefinitions={definitionsData} /> : null}
+          {workflowSteps[workflowStep].action === 'excel' ? <button className="btn btn-primary" onClick={exportToExcel}>Export Excel for Box</button> : null}
+          {workflowSteps[workflowStep].action === 'json' ? <button className="btn btn-primary" onClick={exportToJson}>Export ORW JSON</button> : null}
+        </SubmissionGuide>
+      ) : null}
+      <ValidationSummary isOpen={showValidation} onClose={() => setShowValidation(false)} errors={validationErrors} />
     </div>
   );
 }
