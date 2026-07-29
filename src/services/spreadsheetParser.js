@@ -85,7 +85,7 @@ export function parseMetricData(rows) {
     metricValue: getValueFromRow(row, ['metric value', 'metricvalue']),
     numerator: getValueFromRow(row, ['numerator']),
     denominator: getValueFromRow(row, ['denominator']),
-    programType: getValueFromRow(row, ['program type', 'programtype']),
+    programType: getValueFromRow(row, ['program type', 'program type required', 'programtype', 'programtyperequired']),
     benchmark: getValueFromRow(row, ['internal state benchmark', 'benchmark']),
     comment: getValueFromRow(row, ['comment']),
   }));

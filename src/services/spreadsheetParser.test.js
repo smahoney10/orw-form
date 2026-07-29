@@ -75,5 +75,11 @@ test('parses metric data and settings headers', () => {
   const parsedMetrics = parseMetricData(metricRows);
   const parsedSettings = parseSettings(settingsRows);
   assert.equal(parsedMetrics[0].metricId, 'M-1');
+  assert.equal(parsedMetrics[0].programType, 'Type');
   assert.equal(parsedSettings.stateAbbreviation, 'CA');
+});
+
+test('parses the V3 Program Type (Required) header', () => {
+  const parsed = parseMetricData([{ 'Program Type (Required)': 'Medicaid' }]);
+  assert.equal(parsed[0].programType, 'Medicaid');
 });

@@ -1,5 +1,6 @@
 import { MODULES, getOutcomeRefsForModule } from '../data/referenceData';
 
+const ATTESTATION_CHECKS_ENABLED = false;
 const isBlank = (value) => value === null || value === undefined || String(value).trim() === '';
 const rowLabel = (row, index) => `Row ${row.sourceRow || index + 2}`;
 const rowNumbers = (rows) => rows.map((row, index) => row.sourceRow || index + 2);
@@ -13,7 +14,8 @@ export function runBoxValidation(metricDefinitions = [], metricData = [], attest
   return {
     prechecks: runPrechecks({ metricDefinitions, metricData, attestations, fileName, sheetNames, workbookReadable }),
     checks: runBoxChecks(metricDefinitions, metricData, { stateAbbreviation, fileName }),
-    attestationChecks: runAttestationChecks(metricDefinitions, attestations),
+    // Attestation validation is intentionally paused while the workbook rules are finalized.
+    attestationChecks: ATTESTATION_CHECKS_ENABLED ? runAttestationChecks(metricDefinitions, attestations) : [],
   };
 }
 
@@ -42,7 +44,7 @@ function runPrechecks({ metricDefinitions, metricData, attestations, fileName, s
   // Precheck 5 — the v3 headers used by this application.
   const expectedHeaders = {
     'Metric Definitions': ['Module', 'Related System', 'Outcome/CEF Reference #', 'State-Specific Outcome Description', 'Metric ID', 'Metric Name', 'Metric Description', 'Numerator Description', 'Denominator Description', 'Value Type', 'Metric Reporting Frequency', 'OAPD Metric Status', 'Note'],
-    'Metric Data': ['Reporting Date', 'Metric ID', 'Measure Count', 'Measure Count Description', 'Metric Value', 'Numerator', 'Denominator', 'Program Type', 'Internal State Benchmark', 'Comment'],
+    'Metric Data': ['Reporting Date', 'Metric ID', 'Measure Count', 'Measure Count Description (Optional)', 'Metric Value', 'Numerator', 'Denominator', 'Program Type (Required)', 'Internal State Benchmark (Optional)', 'Comment'],
     'CMS Attestations': ['Module', 'Related System', 'Outcome/CEF Reference #', 'CMS-Required Outcome and CEF Description', 'Outcome/CEF Applicable (Yes/No)', 'Justification for "No"'],
   };
   const providedHeaders = optionsHeaders(sheetNames, metricDefinitions, metricData, attestations);
