@@ -1,4 +1,4 @@
-import { MODULES, getOutcomeRefsForModule } from '../data/referenceData';
+import { MODULE_ABBREVIATIONS, getOutcomeRefsForModule } from '../data/referenceData';
 
 const ATTESTATION_CHECKS_ENABLED = false;
 const isBlank = (value) => value === null || value === undefined || String(value).trim() === '';
@@ -96,8 +96,9 @@ function runBoxChecks(definitions, values, { stateAbbreviation, fileName }) {
   });
   missing(37, values, 'programType', 'Program Type is missing.');
 
+  const validModuleTypes = new Set(Object.values(MODULE_ABBREVIATIONS));
   definitions.forEach((row, index) => {
-    if (!isBlank(row.metricId) && !MODULES.includes(row.module)) issues.push(`Check 38 (${rowLabel(row, index)}): Module "${row.module || 'blank'}" is not a valid module.`);
+    if (!isBlank(row.metricId) && !validModuleTypes.has(String(row.module).trim())) issues.push(`Check 38 (${rowLabel(row, index)}): Module "${row.module || 'blank'}" is not a valid module.`);
   });
 
   const allIds = values.filter((row) => !isBlank(row.metricId)).map((row) => String(row.metricId));

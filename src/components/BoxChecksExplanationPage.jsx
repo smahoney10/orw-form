@@ -15,7 +15,7 @@ function BoxChecksExplanationPage({ onBack }) {
         ['Check 32', 'When a Measure Count is entered, it must be a whole number. Blank values are handled by Check 24.'],
         ['Check 35', 'Every Metric ID reported on Metric Data must also appear on Metric Definitions.'],
         ['Check 37', 'Each Metric Data row must have a Program Type.'],
-        ['Check 38', 'Each populated Metric ID on Metric Definitions must use a Module that is in the approved module list.'],
+        ['Check 38', 'Each populated Metric ID on Metric Definitions must use an approved module abbreviation, such as PBM.'],
         ['Check 39', 'If any reported Metric ID contains “IO”, the file must also report both state-specific IOPAA IDs: [State]-CR-IOPAA-01.1 and [State]-CR-IOPAA-01.2.'],
       ],
     },
