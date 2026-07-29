@@ -27,8 +27,8 @@ function getValue(row, candidates) {
 export function parseAttestations(rows) {
   return (rows || []).map((row) => ({
     module: getValue(row, ['module']),
-    relatedSystem: getValue(row, ['related system', 'related_system', 'relatedsystem', 'related system required']),
-    outcomeRef: getValue(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref']),
+    relatedSystem: getValue(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
+    outcomeRef: getValue(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref','Outcome/CEF Applicable (Yes/No) ']),
     outcomeDesc: getValue(row, ['cms-required outcome and cef description', 'outcome description']),
     applicable: getValue(row, ['applicable', 'applicable yes/no', 'applicable selection', 'outcome/cef applicable yes/no']),
     justification: getValue(row, ['justification', 'justification for no']),
