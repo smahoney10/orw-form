@@ -20,6 +20,12 @@ test('parses attestation headers with required suffixes and punctuation', () => 
   assert.equal(parsed[0].justification, 'N/A');
 });
 
+test('treats whitespace-only values as empty', () => {
+  const rows = [{ 'Related System\n(Required)': '   ' }];
+  const parsed = parseAttestations(rows);
+  assert.equal(parsed[0].relatedSystem, '');
+});
+
 test('parses metric definition headers with required suffixes and punctuation', () => {
   const rows = [
     {
