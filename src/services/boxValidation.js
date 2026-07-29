@@ -43,9 +43,9 @@ function runPrechecks({ metricDefinitions, metricData, attestations, fileName, s
 
   // Precheck 5 — the v3 headers used by this application.
   const expectedHeaders = {
-    'Metric Definitions': ['Module', 'Related System', 'Outcome/CEF Reference #', 'State-Specific Outcome Description', 'Metric ID', 'Metric Name', 'Metric Description', 'Numerator Description', 'Denominator Description', 'Value Type', 'Metric Reporting Frequency', 'OAPD Metric Status', 'Note'],
+    'Metric Definitions': ['Module', 'Related System (Required)', 'Outcome/CEF Reference #', 'State-Specific Outcome Description', 'Metric ID', 'Metric Name', 'Metric Description', 'Numerator Description', 'Denominator Description', 'Value Type', 'Metric Reporting Frequency', 'OAPD Metric Status', 'Note'],
     'Metric Data': ['Reporting Date', 'Metric ID', 'Measure Count', 'Measure Count Description (Optional)', 'Metric Value', 'Numerator', 'Denominator', 'Program Type (Required)', 'Internal State Benchmark (Optional)', 'Comment'],
-    'CMS Attestations': ['Module', 'Related System', 'Outcome/CEF Reference #', 'CMS-Required Outcome and CEF Description', 'Outcome/CEF Applicable (Yes/No)', 'Justification for "No"'],
+    'CMS Attestations': ['Module', 'Related System (Required)', 'Outcome/CEF Reference #', 'CMS-Required Outcome and CEF Description', 'Outcome/CEF Applicable (Yes/No)', 'Justification for "No"'],
   };
   const providedHeaders = optionsHeaders(sheetNames, metricDefinitions, metricData, attestations);
   const missing = Object.entries(expectedHeaders).flatMap(([sheet, headers]) =>
