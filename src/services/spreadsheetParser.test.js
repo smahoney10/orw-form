@@ -83,3 +83,24 @@ test('parses the V3 Program Type (Required) header', () => {
   const parsed = parseMetricData([{ 'Program Type (Required)': 'Medicaid' }]);
   assert.equal(parsed[0].programType, 'Medicaid');
 });
+
+test('applies V3 metric cleaning and percentage-ratio conversion', () => {
+  const definitions = parseDefinitions([{ 'Metric ID': 'MA_CR_PBM_01.01', 'Value Type': 'Percentage' }]);
+  const parsed = parseMetricData([{
+    'Reporting Date': '2026-05-01',
+    'Metric ID': ' MA_CR_PBM_01.01 ',
+    'Measure Count': '',
+    'Metric Value': '25:100',
+    'Numerator': 'N/A',
+    'Denominator': 'N/A',
+    'Program Type (Required)': '',
+  }], definitions);
+
+  assert.equal(parsed.length, 1);
+  assert.equal(parsed[0].metricId, 'MA-CR-PBM-01.01');
+  assert.equal(parsed[0].measureCount, '1');
+  assert.equal(parsed[0].programType, 'Medicaid');
+  assert.equal(parsed[0].numerator, '25');
+  assert.equal(parsed[0].denominator, '100');
+  assert.equal(parsed[0].metricValue, '0.25');
+});

@@ -44,51 +44,120 @@ function getValueFromRow(row, candidates) {
   return getValue(row, candidates);
 }
 
+const NULL_TEXT = /^(nan|null|none|<na>|n\/a)$/i;
+
+function cleanText(value) {
+  if (value === null || value === undefined) return '';
+  const cleaned = String(value).replace(/\u200b/g, '').trim();
+  return NULL_TEXT.test(cleaned) ? '' : cleaned;
+}
+
+function normalizeMetricId(value) {
+  return cleanText(value)
+    .replace(/DSS\/DW/gi, 'DSSDW')
+    .replace(/[‐‑–—]/g, '-')
+    .replace(/[_\s]/g, '');
+}
+
+function normalizeOutcomeReference(value) {
+  return cleanText(value)
+    .replace(/DSS\/DW/gi, 'DSSDW')
+    .replace(/[-\s]/g, '');
+}
+
+function normalizeValueType(value) {
+  const cleaned = cleanText(value);
+  if (/num/i.test(cleaned)) return 'Numerical';
+  if (/percent/i.test(cleaned)) return 'Percentage';
+  if (/list/i.test(cleaned)) return 'List';
+  return cleaned;
+}
+
+function cleanNumericText(value) {
+  const cleaned = cleanText(value);
+  if (!cleaned) return '';
+  const withoutCommas = cleaned.replace(/,/g, '');
+  return Number.isFinite(Number(withoutCommas)) ? withoutCommas : cleaned;
+}
+
+function formatDate(value) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  return cleanText(value);
+}
+
 export function parseAttestations(rows) {
   return (rows || []).map((row) => ({
     sourceRow: row.__rowNumber,
-    module: getValueFromRow(row, ['module']),
-    relatedSystem: getValueFromRow(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
-    outcomeRef: getValueFromRow(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref','Outcome/CEF Applicable (Yes/No) ']),
-    outcomeDesc: getValueFromRow(row, ['cms-required outcome and cef description', 'outcome description']),
-    applicable: getValueFromRow(row, ['applicable', 'applicable yes/no', 'applicable selection', 'outcome/cef applicable yes/no']),
-    justification: getValueFromRow(row, ['justification', 'justification for no']),
+    module: cleanText(getValueFromRow(row, ['module'])),
+    relatedSystem: cleanText(getValueFromRow(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)'])),
+    outcomeRef: normalizeOutcomeReference(getValueFromRow(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref','Outcome/CEF Applicable (Yes/No) '])),
+    outcomeDesc: cleanText(getValueFromRow(row, ['cms-required outcome and cef description', 'outcome description'])),
+    applicable: cleanText(getValueFromRow(row, ['applicable', 'applicable yes/no', 'applicable selection', 'outcome/cef applicable yes/no'])),
+    justification: cleanText(getValueFromRow(row, ['justification', 'justification for no'])),
   }));
 }
 
 export function parseDefinitions(rows) {
   return (rows || []).map((row) => ({
     sourceRow: row.__rowNumber,
-    module: getValueFromRow(row, ['module']),
-    relatedSystem: getValueFromRow(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
-    outcomeRef: getValueFromRow(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref']),
-    stateSpecificDesc: getValueFromRow(row, ['state-specific outcome description', 'state specific desc']),
-    metricId: getValueFromRow(row, ['metric id', 'metricid']),
-    metricName: getValueFromRow(row, ['metric name', 'metricname']),
-    metricDescription: getValueFromRow(row, ['metric description', 'metricdescription']),
-    numeratorDesc: getValueFromRow(row, ['numerator description', 'numeratordesc']),
-    denominatorDesc: getValueFromRow(row, ['denominator description', 'denominatordesc']),
-    valueType: getValueFromRow(row, ['value type', 'valuetype']),
-    frequency: getValueFromRow(row, ['metric reporting frequency', 'frequency']),
-    status: getValueFromRow(row, ['oapd metric status', 'status']),
-    note: getValueFromRow(row, ['note']),
+    module: cleanText(getValueFromRow(row, ['module'])),
+    relatedSystem: cleanText(getValueFromRow(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'related system recommended', 'Related System (Required)'])),
+    outcomeRef: normalizeOutcomeReference(getValueFromRow(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref'])),
+    stateSpecificDesc: cleanText(getValueFromRow(row, ['state-specific outcome description', 'state specific desc'])),
+    metricId: normalizeMetricId(getValueFromRow(row, ['metric id', 'metricid'])),
+    metricName: cleanText(getValueFromRow(row, ['metric name', 'metricname'])),
+    metricDescription: cleanText(getValueFromRow(row, ['metric description', 'metricdescription'])),
+    numeratorDesc: cleanText(getValueFromRow(row, ['numerator description', 'numeratordesc'])),
+    denominatorDesc: cleanText(getValueFromRow(row, ['denominator description', 'denominatordesc'])),
+    valueType: normalizeValueType(getValueFromRow(row, ['value type', 'valuetype'])),
+    frequency: cleanText(getValueFromRow(row, ['metric reporting frequency', 'frequency'])) || 'Monthly',
+    status: cleanText(getValueFromRow(row, ['oapd metric status', 'status'])) || 'Active',
+    note: cleanText(getValueFromRow(row, ['note'])),
   }));
 }
 
-export function parseMetricData(rows) {
-  return (rows || []).map((row) => ({
+export function parseMetricData(rows, metricDefinitions = []) {
+  const parsedRows = (rows || []).map((row) => ({
     sourceRow: row.__rowNumber,
-    reportingDate: getValueFromRow(row, ['reporting date', 'reportingdate']),
-    metricId: getValueFromRow(row, ['metric id', 'metricid']),
-    measureCount: getValueFromRow(row, ['measure count', 'measurecount']),
-    measureCountDesc: getValueFromRow(row, ['measure count description', 'measurecountdesc']),
-    metricValue: getValueFromRow(row, ['metric value', 'metricvalue']),
-    numerator: getValueFromRow(row, ['numerator']),
-    denominator: getValueFromRow(row, ['denominator']),
-    programType: getValueFromRow(row, ['program type', 'program type required', 'programtype', 'programtyperequired']),
-    benchmark: getValueFromRow(row, ['internal state benchmark', 'benchmark']),
-    comment: getValueFromRow(row, ['comment']),
-  }));
+    reportingDate: formatDate(getValueFromRow(row, ['reporting date', 'reportingdate'])),
+    metricId: normalizeMetricId(getValueFromRow(row, ['metric id', 'metricid'])),
+    measureCount: cleanNumericText(getValueFromRow(row, ['measure count', 'measurecount'])),
+    measureCountDesc: cleanText(getValueFromRow(row, ['measure count description', 'measurecountdesc'])),
+    metricValue: cleanNumericText(getValueFromRow(row, ['metric value', 'metricvalue'])),
+    numerator: cleanNumericText(getValueFromRow(row, ['numerator'])),
+    denominator: cleanNumericText(getValueFromRow(row, ['denominator'])),
+    programType: cleanText(getValueFromRow(row, ['program type', 'program type required', 'programtype', 'programtyperequired'])) || 'Medicaid',
+    benchmark: cleanText(getValueFromRow(row, ['internal state benchmark', 'benchmark'])),
+    comment: cleanText(getValueFromRow(row, ['comment'])),
+  })).filter((row) => row.reportingDate || row.metricId || row.measureCount);
+
+  const definitionsById = new Map(metricDefinitions.map((definition) => [definition.metricId, definition]));
+  const pairCounts = new Map();
+  parsedRows.forEach((row) => {
+    const key = `${row.reportingDate}|${row.metricId}`;
+    pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
+  });
+
+  return parsedRows.map((row) => {
+    const key = `${row.reportingDate}|${row.metricId}`;
+    const cleaned = { ...row };
+    if (!cleaned.measureCount && pairCounts.get(key) === 1) cleaned.measureCount = '1';
+
+    const valueType = definitionsById.get(cleaned.metricId)?.valueType;
+    if (valueType === 'Percentage') {
+      const ratio = cleaned.metricValue.match(/^\s*(\d+)\s*:\s*(\d+)\s*$/);
+      if (ratio) {
+        cleaned.numerator = ratio[1];
+        cleaned.denominator = ratio[2];
+      }
+      if (cleaned.numerator && cleaned.denominator && Number(cleaned.denominator) !== 0 && !cleaned.metricId.includes('EVV-5')) {
+        cleaned.metricValue = String(Number(cleaned.numerator) / Number(cleaned.denominator));
+      }
+    }
+    return cleaned;
+  });
 }
 
 export function parseSettings(rows) {

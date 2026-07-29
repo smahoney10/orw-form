@@ -102,7 +102,7 @@ function UploadValidationPage({ onBack }) {
       );
       const attestationsData = parseAttestations(attestationRows);
       const definitionsData = parseDefinitions(definitionRows);
-      const metricData = parseMetricData(metricRows);
+      const metricData = parseMetricData(metricRows, definitionsData);
       const settings = parseSettings(settingsRows);
       attestationsData.headers = attestationRows.headers || [];
       definitionsData.headers = definitionRows.headers || [];
