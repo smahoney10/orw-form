@@ -87,6 +87,7 @@ function App() {
       const label = `Row ${i + 1}`;
       if (!row.reportingDate) errors.data.push(`${label}: Reporting Date is required`);
       if (!row.metricId) errors.data.push(`${label}: Metric ID is required`);
+      if (!row.measureCount) errors.data.push(`${label}: Measure Count is required`);
       if (!row.programType) errors.data.push(`${label}: Program Type is required`);
       if (!row.metricValue && !row.comment) {
         errors.data.push(`${label}: Comment required when Metric Value is missing`);

@@ -139,7 +139,9 @@ export default function MetricData({ data, onChange, metricDefinitions }) {
     }
 
     // Measure count validation
-    if (row.measureCount && (isNaN(row.measureCount) || parseInt(row.measureCount) < 1)) {
+    if (!row.measureCount) {
+      errors.push('Measure Count is required');
+    } else if (isNaN(row.measureCount) || parseInt(row.measureCount) < 1) {
       errors.push('Measure Count must be a positive integer');
     }
 
@@ -193,7 +195,7 @@ export default function MetricData({ data, onChange, metricDefinitions }) {
               <tr>
                 <th style={{ width: '130px' }}>Reporting Date</th>
                 <th style={{ width: '180px' }}>Metric ID</th>
-                <th style={{ width: '70px' }}>Measure Count</th>
+                <th style={{ width: '70px' }}>Measure Count <span className="required">*</span></th>
                 <th style={{ width: '150px' }}>Measure Count Desc</th>
                 <th style={{ width: '100px' }}>Metric Value</th>
                 <th style={{ width: '90px' }}>Numerator</th>
@@ -238,8 +240,10 @@ export default function MetricData({ data, onChange, metricDefinitions }) {
                       <input
                         type="number"
                         min="1"
+                        required
                         value={row.measureCount}
                         onChange={(e) => handleFieldChange(idx, 'measureCount', e.target.value)}
+                        className={!row.measureCount ? 'input-error' : ''}
                       />
                     </td>
                     <td>

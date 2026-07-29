@@ -134,16 +134,8 @@ export function parseMetricData(rows, metricDefinitions = []) {
   })).filter((row) => row.reportingDate || row.metricId || row.measureCount);
 
   const definitionsById = new Map(metricDefinitions.map((definition) => [definition.metricId, definition]));
-  const pairCounts = new Map();
-  parsedRows.forEach((row) => {
-    const key = `${row.reportingDate}|${row.metricId}`;
-    pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
-  });
-
   return parsedRows.map((row) => {
-    const key = `${row.reportingDate}|${row.metricId}`;
     const cleaned = { ...row };
-    if (!cleaned.measureCount && pairCounts.get(key) === 1) cleaned.measureCount = '1';
 
     const valueType = definitionsById.get(cleaned.metricId)?.valueType;
     if (valueType === 'Percentage') {

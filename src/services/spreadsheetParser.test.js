@@ -98,7 +98,7 @@ test('applies V3 metric cleaning and percentage-ratio conversion', () => {
 
   assert.equal(parsed.length, 1);
   assert.equal(parsed[0].metricId, 'MA-CR-PBM-01.01');
-  assert.equal(parsed[0].measureCount, '1');
+  assert.equal(parsed[0].measureCount, '');
   assert.equal(parsed[0].programType, 'Medicaid');
   assert.equal(parsed[0].numerator, '25');
   assert.equal(parsed[0].denominator, '100');
