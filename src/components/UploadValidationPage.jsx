@@ -3,6 +3,40 @@ import * as XLSX from 'xlsx';
 import { runBoxValidation } from '../services/boxValidation';
 import { parseAttestations, parseDefinitions, parseMetricData, parseSettings } from '../services/spreadsheetParser';
 
+function normalizeHeader(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[^a-z0-9]+/g, '')
+    .trim();
+}
+
+function getSheetDataRows(worksheet, candidateHeaders = []) {
+  if (!worksheet) return [];
+
+  const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+  if (!Array.isArray(rawRows) || rawRows.length === 0) return [];
+
+  const candidateRows = rawRows.slice(0, 2).map((row, index) => ({ row, index }));
+  const headerCandidateIndex = candidateRows.findIndex(({ row }) =>
+    row.some((cell) => candidateHeaders.some((candidate) => normalizeHeader(cell) === normalizeHeader(candidate)))
+  );
+
+  const selectedHeaderIndex = headerCandidateIndex >= 0 ? candidateRows[headerCandidateIndex].index : 0;
+  const headerRow = rawRows[selectedHeaderIndex] || [];
+
+  return rawRows
+    .slice(selectedHeaderIndex + 1)
+    .filter((row) => Array.isArray(row) && row.some((cell) => String(cell ?? '').trim() !== ''))
+    .map((row) => {
+      const dataRow = {};
+      headerRow.forEach((header, index) => {
+        dataRow[String(header)] = row[index] ?? '';
+      });
+      return dataRow;
+    });
+}
+
 function UploadValidationPage({ onBack }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -31,17 +65,38 @@ function UploadValidationPage({ onBack }) {
       const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
 
       const sheetNames = workbook.SheetNames || [];
-      const sheetMap = {};
 
-      sheetNames.forEach((sheetName) => {
-        const worksheet = workbook.Sheets[sheetName];
-        sheetMap[sheetName] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-      });
-
-      const attestationsData = parseAttestations(sheetMap['CMS Attestations'] || sheetMap[sheetNames[0]] || []);
-      const definitionsData = parseDefinitions(sheetMap['Metric Definitions'] || []);
-      const metricData = parseMetricData(sheetMap['Metric Data'] || []);
-      const settings = parseSettings(sheetMap['Settings'] || sheetMap[sheetNames[0]] || []);
+      const attestationsData = parseAttestations(
+        getSheetDataRows(workbook.Sheets['CMS Attestations'] || workbook.Sheets[sheetNames[0]], [
+          'module',
+          'related system',
+          'outcome cef reference',
+          'applicable',
+          'justification',
+        ])
+      );
+      const definitionsData = parseDefinitions(
+        getSheetDataRows(workbook.Sheets['Metric Definitions'] || workbook.Sheets[sheetNames[0]], [
+          'module',
+          'related system',
+          'outcome cef reference',
+          'metric id',
+          'metric name',
+        ])
+      );
+      const metricData = parseMetricData(
+        getSheetDataRows(workbook.Sheets['Metric Data'] || workbook.Sheets[sheetNames[0]], [
+          'reporting date',
+          'metric id',
+          'metric value',
+        ])
+      );
+      const settings = parseSettings(
+        getSheetDataRows(workbook.Sheets['Settings'] || workbook.Sheets[sheetNames[0]], [
+          'state abbreviation',
+          'state name',
+        ])
+      );
 
       const boxValidation = runBoxValidation(definitionsData, metricData, attestationsData, settings);
       const standardIssues = [];

@@ -6,13 +6,19 @@ function normalizeHeader(value) {
     .trim();
 }
 
-function getValue(row, candidates) {
-  if (!row) return '';
+function buildHeaderMap(row) {
+  if (!row) return {};
 
-  const normalizedRow = Object.entries(row).reduce((acc, [key, value]) => {
+  return Object.entries(row).reduce((acc, [key, value]) => {
     acc[normalizeHeader(key)] = value;
     return acc;
   }, {});
+}
+
+function getValue(row, candidates) {
+  if (!row) return '';
+
+  const normalizedRow = buildHeaderMap(row);
 
   for (const candidate of candidates) {
     const key = normalizeHeader(candidate);
@@ -24,54 +30,78 @@ function getValue(row, candidates) {
   return '';
 }
 
+function getHeaderSource(sheetRows) {
+  if (!Array.isArray(sheetRows) || sheetRows.length === 0) {
+    return [];
+  }
+
+  const headerRows = [];
+  if (sheetRows[0]) headerRows.push(sheetRows[0]);
+  if (sheetRows[1]) headerRows.push(sheetRows[1]);
+  return headerRows;
+}
+
+function getValueFromHeaderRows(rows, candidates) {
+  const headerRows = getHeaderSource(rows);
+  if (headerRows.length === 0) return '';
+
+  for (const headerRow of headerRows) {
+    const value = getValue(headerRow, candidates);
+    if (value !== '') return value;
+  }
+
+  return '';
+}
+
 export function parseAttestations(rows) {
   return (rows || []).map((row) => ({
-    module: getValue(row, ['module']),
-    relatedSystem: getValue(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
-    outcomeRef: getValue(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref','Outcome/CEF Applicable (Yes/No) ']),
-    outcomeDesc: getValue(row, ['cms-required outcome and cef description', 'outcome description']),
-    applicable: getValue(row, ['applicable', 'applicable yes/no', 'applicable selection', 'outcome/cef applicable yes/no']),
-    justification: getValue(row, ['justification', 'justification for no']),
+    module: getValueFromHeaderRows(rows, ['module']),
+    relatedSystem: getValueFromHeaderRows(rows, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
+    outcomeRef: getValueFromHeaderRows(rows, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref','Outcome/CEF Applicable (Yes/No) ']),
+    outcomeDesc: getValueFromHeaderRows(rows, ['cms-required outcome and cef description', 'outcome description']),
+    applicable: getValueFromHeaderRows(rows, ['applicable', 'applicable yes/no', 'applicable selection', 'outcome/cef applicable yes/no']),
+    justification: getValueFromHeaderRows(rows, ['justification', 'justification for no']),
   }));
 }
 
 export function parseDefinitions(rows) {
   return (rows || []).map((row) => ({
-    module: getValue(row, ['module']),
-    relatedSystem: getValue(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
-    outcomeRef: getValue(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref']),
-    stateSpecificDesc: getValue(row, ['state-specific outcome description', 'state specific desc']),
-    metricId: getValue(row, ['metric id', 'metricid']),
-    metricName: getValue(row, ['metric name', 'metricname']),
-    metricDescription: getValue(row, ['metric description', 'metricdescription']),
-    numeratorDesc: getValue(row, ['numerator description', 'numeratordesc']),
-    denominatorDesc: getValue(row, ['denominator description', 'denominatordesc']),
-    valueType: getValue(row, ['value type', 'valuetype']),
-    frequency: getValue(row, ['metric reporting frequency', 'frequency']),
-    status: getValue(row, ['oapd metric status', 'status']),
-    note: getValue(row, ['note']),
+    module: getValueFromHeaderRows(rows, ['module']),
+    relatedSystem: getValueFromHeaderRows(rows, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
+    outcomeRef: getValueFromHeaderRows(rows, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref']),
+    stateSpecificDesc: getValueFromHeaderRows(rows, ['state-specific outcome description', 'state specific desc']),
+    metricId: getValueFromHeaderRows(rows, ['metric id', 'metricid']),
+    metricName: getValueFromHeaderRows(rows, ['metric name', 'metricname']),
+    metricDescription: getValueFromHeaderRows(rows, ['metric description', 'metricdescription']),
+    numeratorDesc: getValueFromHeaderRows(rows, ['numerator description', 'numeratordesc']),
+    denominatorDesc: getValueFromHeaderRows(rows, ['denominator description', 'denominatordesc']),
+    valueType: getValueFromHeaderRows(rows, ['value type', 'valuetype']),
+    frequency: getValueFromHeaderRows(rows, ['metric reporting frequency', 'frequency']),
+    status: getValueFromHeaderRows(rows, ['oapd metric status', 'status']),
+    note: getValueFromHeaderRows(rows, ['note']),
   }));
 }
 
 export function parseMetricData(rows) {
   return (rows || []).map((row) => ({
-    reportingDate: getValue(row, ['reporting date', 'reportingdate']),
-    metricId: getValue(row, ['metric id', 'metricid']),
-    measureCount: getValue(row, ['measure count', 'measurecount']),
-    measureCountDesc: getValue(row, ['measure count description', 'measurecountdesc']),
-    metricValue: getValue(row, ['metric value', 'metricvalue']),
-    numerator: getValue(row, ['numerator']),
-    denominator: getValue(row, ['denominator']),
-    programType: getValue(row, ['program type', 'programtype']),
-    benchmark: getValue(row, ['internal state benchmark', 'benchmark']),
-    comment: getValue(row, ['comment']),
+    reportingDate: getValueFromHeaderRows(rows, ['reporting date', 'reportingdate']),
+    metricId: getValueFromHeaderRows(rows, ['metric id', 'metricid']),
+    measureCount: getValueFromHeaderRows(rows, ['measure count', 'measurecount']),
+    measureCountDesc: getValueFromHeaderRows(rows, ['measure count description', 'measurecountdesc']),
+    metricValue: getValueFromHeaderRows(rows, ['metric value', 'metricvalue']),
+    numerator: getValueFromHeaderRows(rows, ['numerator']),
+    denominator: getValueFromHeaderRows(rows, ['denominator']),
+    programType: getValueFromHeaderRows(rows, ['program type', 'programtype']),
+    benchmark: getValueFromHeaderRows(rows, ['internal state benchmark', 'benchmark']),
+    comment: getValueFromHeaderRows(rows, ['comment']),
   }));
 }
 
 export function parseSettings(rows) {
   const firstRow = rows?.[0] || {};
+  const secondRow = rows?.[1] || {};
   return {
-    stateAbbreviation: getValue(firstRow, ['state abbreviation', 'stateabbreviation', 'state_abbreviation']),
-    stateName: getValue(firstRow, ['state name', 'statename']),
+    stateAbbreviation: getValue(firstRow, ['state abbreviation', 'stateabbreviation', 'state_abbreviation']) || getValue(secondRow, ['state abbreviation', 'stateabbreviation', 'state_abbreviation']),
+    stateName: getValue(firstRow, ['state name', 'statename']) || getValue(secondRow, ['state name', 'statename']),
   };
 }
