@@ -271,7 +271,11 @@ function App() {
             <p className="subtitle">MES Metrics — CMS Operational Reporting</p>
           </div>
           <div className="header-actions">
-            {screen !== 'home' ? <button className="btn btn-secondary" onClick={() => setScreen('home')}>All workflows</button> : null}
+            <button className="btn btn-secondary" onClick={() => setScreen('home')}>Home Page</button>
+            <button className="btn btn-secondary" onClick={() => openWorkflow('create')}>Create ORW</button>
+            <button className="btn btn-secondary" onClick={() => openWorkflow('import')}>Import JSON</button>
+            <button className="btn btn-secondary" onClick={() => openWorkflow('validate')}>Validate ORW</button>
+            <button className="btn btn-secondary" onClick={() => openWorkflow('learn')}>Submission checks</button>
             {screen === 'workspace' ? <button className={`btn ${totalErrors > 0 ? 'btn-warning' : 'btn-success'}`} onClick={() => setShowValidation(true)}>{totalErrors > 0 ? `${totalErrors} issues` : 'Ready to review'}</button> : null}
           </div>
         </div>

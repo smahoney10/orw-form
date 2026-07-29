@@ -10,8 +10,8 @@ const WORKFLOWS = [
   {
     id: 'import',
     number: '02',
-    title: 'Continue a previous ORW submission',
-    description: 'Import a saved ORW JSON file, update the report, and prepare the next submission.',
+    title: 'Work from a previous ORW submission',
+    description: 'Import a saved ORW JSON file, update the workbook, and prepare the next submission.',
     steps: ['Import previous ORW JSON', 'Update attestations and definitions', 'Input metric data', 'Export to Excel for Box', 'Export JSON for future reporting'],
     action: 'Import ORW JSON',
   },
