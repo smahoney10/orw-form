@@ -38,7 +38,7 @@ export function parseAttestations(rows) {
 export function parseDefinitions(rows) {
   return (rows || []).map((row) => ({
     module: getValue(row, ['module']),
-    relatedSystem: getValue(row, ['related system', 'related_system', 'relatedsystem', 'related system required']),
+    relatedSystem: getValue(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
     outcomeRef: getValue(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref']),
     stateSpecificDesc: getValue(row, ['state-specific outcome description', 'state specific desc']),
     metricId: getValue(row, ['metric id', 'metricid']),
