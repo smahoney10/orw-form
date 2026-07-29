@@ -46,6 +46,7 @@ function getValueFromRow(row, candidates) {
 
 export function parseAttestations(rows) {
   return (rows || []).map((row) => ({
+    sourceRow: row.__rowNumber,
     module: getValueFromRow(row, ['module']),
     relatedSystem: getValueFromRow(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
     outcomeRef: getValueFromRow(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref','Outcome/CEF Applicable (Yes/No) ']),
@@ -57,6 +58,7 @@ export function parseAttestations(rows) {
 
 export function parseDefinitions(rows) {
   return (rows || []).map((row) => ({
+    sourceRow: row.__rowNumber,
     module: getValueFromRow(row, ['module']),
     relatedSystem: getValueFromRow(row, ['related system', 'related_system', 'relatedsystem', 'related system required', 'Related System (Required)']),
     outcomeRef: getValueFromRow(row, ['outcome cef reference', 'outcome/cef reference #', 'outcome_ref']),
@@ -75,6 +77,7 @@ export function parseDefinitions(rows) {
 
 export function parseMetricData(rows) {
   return (rows || []).map((row) => ({
+    sourceRow: row.__rowNumber,
     reportingDate: getValueFromRow(row, ['reporting date', 'reportingdate']),
     metricId: getValueFromRow(row, ['metric id', 'metricid']),
     measureCount: getValueFromRow(row, ['measure count', 'measurecount']),

@@ -25,16 +25,19 @@ function getSheetDataRows(worksheet, candidateHeaders = []) {
   const selectedHeaderIndex = headerCandidateIndex >= 0 ? candidateRows[headerCandidateIndex].index : 0;
   const headerRow = rawRows[selectedHeaderIndex] || [];
 
-  return rawRows
+  const dataRows = rawRows
     .slice(selectedHeaderIndex + 1)
     .filter((row) => Array.isArray(row) && row.some((cell) => String(cell ?? '').trim() !== ''))
-    .map((row) => {
+    .map((row, rowIndex) => {
       const dataRow = {};
       headerRow.forEach((header, index) => {
         dataRow[String(header)] = row[index] ?? '';
       });
+      dataRow.__rowNumber = selectedHeaderIndex + rowIndex + 2;
       return dataRow;
     });
+  dataRows.headers = headerRow.map(normalizeHeader);
+  return dataRows;
 }
 
 function UploadValidationPage({ onBack }) {
@@ -66,39 +69,51 @@ function UploadValidationPage({ onBack }) {
 
       const sheetNames = workbook.SheetNames || [];
 
-      const attestationsData = parseAttestations(
-        getSheetDataRows(workbook.Sheets['CMS Attestations'] || workbook.Sheets[sheetNames[0]], [
+      const attestationRows = getSheetDataRows(
+        workbook.Sheets['CMS Attestations'] || workbook.Sheets[sheetNames[0]], [
           'module',
           'related system',
           'outcome cef reference',
           'applicable',
           'justification',
-        ])
+        ]
       );
-      const definitionsData = parseDefinitions(
-        getSheetDataRows(workbook.Sheets['Metric Definitions'] || workbook.Sheets[sheetNames[0]], [
+      const definitionRows = getSheetDataRows(
+        workbook.Sheets['Metric Definitions'] || workbook.Sheets[sheetNames[0]], [
           'module',
           'related system',
           'outcome cef reference',
           'metric id',
           'metric name',
-        ])
+        ]
       );
-      const metricData = parseMetricData(
-        getSheetDataRows(workbook.Sheets['Metric Data'] || workbook.Sheets[sheetNames[0]], [
+      const metricRows = getSheetDataRows(
+        workbook.Sheets['Metric Data'] || workbook.Sheets['Metric Values'] || workbook.Sheets[sheetNames[0]], [
           'reporting date',
           'metric id',
           'metric value',
-        ])
+        ]
       );
-      const settings = parseSettings(
-        getSheetDataRows(workbook.Sheets['Settings'] || workbook.Sheets[sheetNames[0]], [
+      const settingsRows = getSheetDataRows(
+        workbook.Sheets['Settings'] || workbook.Sheets[sheetNames[0]], [
           'state abbreviation',
           'state name',
-        ])
+        ]
       );
+      const attestationsData = parseAttestations(attestationRows);
+      const definitionsData = parseDefinitions(definitionRows);
+      const metricData = parseMetricData(metricRows);
+      const settings = parseSettings(settingsRows);
+      attestationsData.headers = attestationRows.headers || [];
+      definitionsData.headers = definitionRows.headers || [];
+      metricData.headers = metricRows.headers || [];
 
-      const boxValidation = runBoxValidation(definitionsData, metricData, attestationsData, settings);
+      const boxValidation = runBoxValidation(definitionsData, metricData, attestationsData, {
+        fileName: file.name,
+        sheetNames,
+        workbookReadable: /\.(xlsx|xls)$/i.test(file.name),
+        stateAbbreviation: settings.stateAbbreviation,
+      });
       const standardIssues = [];
       if (!settings.stateAbbreviation) {
         standardIssues.push('State Abbreviation is required');
@@ -110,6 +125,7 @@ function UploadValidationPage({ onBack }) {
         ...standardIssues,
         ...boxValidation.prechecks,
         ...boxValidation.checks,
+        ...boxValidation.attestationChecks,
       ];
 
       setResult({
@@ -145,7 +161,8 @@ function UploadValidationPage({ onBack }) {
         </p>
 
         <form onSubmit={handleSubmit} className="upload-validation-form">
-          <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileChange} />
+          <label htmlFor="workbook-upload">Choose an ORW Excel workbook</label>
+          <input id="workbook-upload" type="file" accept=".xlsx,.xls" onChange={handleFileChange} />
           <button className="btn btn-primary" type="submit" disabled={loading}>
             {loading ? 'Validating...' : 'Run validation'}
           </button>
@@ -193,7 +210,7 @@ function UploadValidationPage({ onBack }) {
             </div>
 
             <div className="validation-section">
-              <h4>Checks 1-39</h4>
+              <h4>Box business checks</h4>
               {result.checks.length > 0 ? (
                 <ul>
                   {result.checks.map((item) => (
@@ -203,6 +220,13 @@ function UploadValidationPage({ onBack }) {
               ) : (
                 <p className="no-errors">No rule issues found.</p>
               )}
+            </div>
+
+            <div className="validation-section">
+              <h4>Attestation checks</h4>
+              {result.attestationChecks.length > 0 ? (
+                <ul>{result.attestationChecks.map((item) => <li key={item}>{item}</li>)}</ul>
+              ) : <p className="no-errors">No attestation issues found.</p>}
             </div>
           </div>
         ) : null}

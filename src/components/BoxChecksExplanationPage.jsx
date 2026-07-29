@@ -1,188 +1,74 @@
-import { useState } from 'react';
-import { fetchDatabricksWorkspaceContent } from '../services/databricks';
-import { extractBoxCheckDescriptions } from '../services/boxChecksParser';
-
 function BoxChecksExplanationPage({ onBack }) {
-  const [workspaceHost, setWorkspaceHost] = useState('cms-dataconnect.cloud.databricks.com');
-  const [workspacePath, setWorkspacePath] = useState('/Workspace/Users/you@example.com/box_checks.py');
-  const [token, setToken] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [sourceContent, setSourceContent] = useState('');
-  const [parsedChecks, setParsedChecks] = useState([]);
-
-  const handleImport = async () => {
-    if (!workspaceHost || !workspacePath || !token) {
-      setError('Please provide the workspace host, workspace path, and token.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setSourceContent('');
-    setParsedChecks([]);
-
-    try {
-      const content = await fetchDatabricksWorkspaceContent({ workspaceHost, token, path: workspacePath });
-      const extracted = extractBoxCheckDescriptions(content);
-      setSourceContent(content);
-      setParsedChecks(extracted);
-    } catch (err) {
-      setError(err.message || 'Unable to load the file from Databricks.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const sections = [
     {
-      title: 'Checks 1 through 39',
-      description: 'The following items reflect the rule-style wording used in the Box validation module.',
-      bullets: [
-        'Check 1: Is a Metric ID missing for any metric?',
-        'Check 2: Is a Metric Name missing for any metric?',
-        'Check 3: Is a Metric Description missing for any metric?',
-        'Check 4: Is a Metric Definition Module missing for any metric?',
-        'Check 5: Is a Metric Definition Related System missing for any metric?',
-        'Check 6: Is a Metric Definition Outcome Ref missing for any metric?',
-        'Check 7: Is a Metric Definition Value Type missing for any metric?',
-        'Check 8: Is a Metric Definition Frequency missing for any metric?',
-        'Check 9: Is a Metric Definition Status missing for any metric?',
-        'Check 10: Is a Metric Definition Numerator Desc missing for any metric?',
-        'Check 11: Is a Metric Definition Denominator Desc missing for any metric?',
-        'Check 12: Is a Metric Definition Note missing for any metric?',
-        'Check 13: Is a Metric Data Reporting Date missing for any metric data row?',
-        'Check 14: Is a Metric Data Metric ID missing for any metric data row?',
-        'Check 15: Is a Metric Data Program Type missing for any metric data row?',
-        'Check 16: Is a Metric Data Metric Value missing for any metric data row?',
-        'Check 17: Is a Metric Data Comment missing for any metric data row?',
-        'Check 18: Is a Metric Data Date in the future for any metric data row?',
-        'Check 19: Is an Attestation Related System missing for any attestation?',
-        'Check 20: Is an Attestation Applicable missing for any attestation?',
-        'Check 21: Is an Attestation Justification missing for any attestation?',
-        'Check 22: Is a Metric Definition Duplicate Metric ID present for any metric?',
-        'Check 23: Is a Metric Definition Module missing for any metric?',
-        'Check 24: Is a Metric Definition Related System missing for any metric?',
-        'Check 25: Is a Metric Definition Outcome Ref missing for any metric?',
-        'Check 26: Is a Metric Definition Metric Name missing for any metric?',
-        'Check 27: Is a Metric Definition Metric Description missing for any metric?',
-        'Check 28: Is a Metric Definition Value Type missing for any metric?',
-        'Check 29: Is a Metric Definition Frequency missing for any metric?',
-        'Check 30: Is a Metric Definition Status missing for any metric?',
-        'Check 31: Is a Metric Definition Numerator Desc missing for any percentage metric?',
-        'Check 32: Is a Metric Definition Denominator Desc missing for any percentage metric?',
-        'Check 33: Is a Metric Definition Duplicate Metric ID present for any metric?',
-        'Check 34: Is an Attestation Related System missing for any attestation?',
-        'Check 35: Is an Attestation Applicable missing for any attestation?',
-        'Check 36: Is an Attestation Justification missing for any attestation?',
-        'Check 37: Is a Metric Data Reporting Date missing for any metric data row?',
-        'Check 38: Is a Metric Data Metric ID missing for any metric data row?',
-        'Check 39: Is a Metric Data Program Type missing for any metric data row?',
+      title: 'Business checks',
+      description: 'These are the numbered checks marked with # Check in the supplied box_checks.py file. A result is shown only when a check finds a problem.',
+      checks: [
+        ['Check 1', 'Each Metric Definitions row must have a Metric ID.'],
+        ['Check 3', 'Each Metric Definitions row must have a Metric Name.'],
+        ['Check 6', 'Each Metric Definitions row must have a Metric Description.'],
+        ['Check 9', 'Each Metric Definitions row must have a Value Type.'],
+        ['Check 22', 'Each Metric Data row must have a Metric ID.'],
+        ['Check 24', 'Each Metric Data row must have a Measure Count.'],
+        ['Check 27', 'Each Metric Data row must have a Numerator.'],
+        ['Check 28', 'Each Metric Data row must have a Denominator.'],
+        ['Check 29', 'When a Numerator is entered, it must be a number. Blank values are handled by Check 27.'],
+        ['Check 30', 'When a Denominator is entered, it must be a number. Blank values are handled by Check 28.'],
+        ['Check 32', 'When a Measure Count is entered, it must be a whole number. Blank values are handled by Check 24.'],
+        ['Check 35', 'Every Metric ID reported on Metric Data must also appear on Metric Definitions.'],
+        ['Check 37', 'Each Metric Data row must have a Program Type.'],
+        ['Check 38', 'Each populated Metric ID on Metric Definitions must use a Module that is in the approved module list.'],
+        ['Check 39', 'If any reported Metric ID contains “IO”, the file must also report both state-specific IOPAA IDs: [State]-CR-IOPAA-01.1 and [State]-CR-IOPAA-01.2.'],
       ],
     },
     {
-      title: 'Each attestation',
-      description: 'Every attestation row is checked to make sure it contains a usable response, the right supporting context, and any required justification. These checks prevent incomplete or ambiguous attestations from being accepted.',
-      bullets: [
-        'Is an Attestation Related System missing for any attestation?',
-        'Is an Attestation Applicable missing for any attestation?',
-        'Is an Attestation Justification missing for any attestation?',
+      title: 'Attestation checks',
+      description: 'These checks are marked # Attestation in the supplied file and apply to the CMS Attestations tab.',
+      checks: [
+        ['Attestation 1', 'Every attestation must identify its Related System.'],
+        ['Attestation 2', 'Every attestation must say whether the outcome is applicable.'],
+        ['Attestation 3', 'When Outcome Applicable is “No”, a Justification is required.'],
+        ['Attestation 4', 'The CMS Attestations tab cannot be empty.'],
+        ['Attestation 5', 'For each Related System and Module used in Metric Definitions, the attestation tab must include every required non-CEF outcome for that module and system.'],
+        ['Attestation 6', 'For every Related System, at least one module must include all 22 CEF attestations (CEF01 through CEF22).'],
+        ['Attestation 7', 'The Related System names used on CMS Attestations and Metric Definitions must match, ignoring capitalization.'],
       ],
     },
     {
-      title: 'Each precheck',
-      description: 'The prechecks run first and catch missing or inconsistent values before the full validation flow continues. They are meant to stop defective records early.',
-      bullets: [
-        'Is a required value missing before the record proceeds?',
-        'Is module, metric, outcome, or system information incomplete?',
-        'Is narrative text or justification missing where required?',
-        'Is the record blocked from downstream processing because it is incomplete?',
-      ],
-    },
-    {
-      title: 'How the versioned files fit together',
-      description: 'The versioned Box check modules are successive implementations of the same validation concept. Each version can refine the existing checks, add new ones, or adjust logic while preserving the same purpose.',
-      bullets: [
-        'box_checks.py provides the core validation behavior.',
-        'box_checks_V1.py adds the first refinement layer.',
-        'box_checks_V2.py introduces the next expansion of the logic.',
-        'box_checks_V3.py carries the latest refinement or edge-case handling.',
+      title: 'Prechecks',
+      description: 'These run before the business checks. They confirm that the uploaded workbook has the required structure and data.',
+      checks: [
+        ['Precheck 1', 'The uploaded file must be an Excel workbook.'],
+        ['Precheck 2', 'The workbook must have exactly one Metric Definitions tab and exactly one Metric Values or Metric Data tab. Version 3 workbooks must also have exactly one CMS Attestations tab.'],
+        ['Precheck 3', 'The filename must end with an underscore followed by a valid date in YYYY-MM-DD format.'],
+        ['Precheck 5', 'The required column headers must be present on the Metric Definitions, Metric Data, and CMS Attestations tabs.'],
+        ['Precheck 6', 'Metric Definitions and Metric Values/Metric Data must each contain at least one row of data.'],
       ],
     },
   ];
 
   return (
-    <div className="box-import-page">
+    <main className="box-import-page">
       <div className="box-import-card">
-        <button className="btn btn-secondary" onClick={onBack}>
-          ← Back to form
-        </button>
-
-        <h2>Box checks explanation</h2>
-        <p>
-          This page is intended to explain the validation logic in the Box import Python files.
-          The files referenced below are expected to live in the Box import folder for this project.
-        </p>
-
-        <div className="settings-panel" style={{ marginBottom: '16px' }}>
-          <div className="settings-field">
-            <label htmlFor="workspaceHost">Databricks workspace host</label>
-            <input
-              id="workspaceHost"
-              value={workspaceHost}
-              onChange={(event) => setWorkspaceHost(event.target.value)}
-              placeholder="cms-dataconnect.cloud.databricks.com"
-            />
-          </div>
-          <div className="settings-field">
-            <label htmlFor="workspacePath">Workspace path to box_checks.py</label>
-            <input
-              id="workspacePath"
-              value={workspacePath}
-              onChange={(event) => setWorkspacePath(event.target.value)}
-              placeholder="/Workspace/Users/you@example.com/box_checks.py"
-            />
-          </div>
-          <div className="settings-field">
-            <label htmlFor="token">Databricks token</label>
-            <input
-              id="token"
-              type="password"
-              value={token}
-              onChange={(event) => setToken(event.target.value)}
-              placeholder="Bearer token or PAT"
-            />
-          </div>
-          <button className="btn btn-primary" type="button" onClick={handleImport} disabled={loading}>
-            {loading ? 'Loading...' : 'Load checks from Databricks'}
-          </button>
-          {error ? <div className="field-error">{error}</div> : null}
-        </div>
-
-        {parsedChecks.length > 0 ? (
-          <div style={{ marginBottom: '16px' }}>
-            <h3>Checks found in the Databricks file</h3>
-            <ul>
-              {parsedChecks.map((check) => (
-                <li key={check}>{check}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
+        <button className="btn btn-secondary" onClick={onBack}>← Back to form</button>
+        <h2>Box checks explained</h2>
+        <p>Plain-English descriptions of the checks supplied from <code>box_checks.py</code>.</p>
         {sections.map((section) => (
-          <div key={section.title}>
-            <h3>{section.title}</h3>
+          <section key={section.title} className="validation-section" aria-labelledby={section.title.replaceAll(' ', '-')}>
+            <h3 id={section.title.replaceAll(' ', '-')}>{section.title}</h3>
             <p>{section.description}</p>
-            <ul>
-              {section.bullets.map((bullet) => (
-                <li key={bullet}>{bullet}</li>
+            <dl>
+              {section.checks.map(([label, description]) => (
+                <div key={label}>
+                  <dt><strong>{label}</strong></dt>
+                  <dd>{description}</dd>
+                </div>
               ))}
-            </ul>
-          </div>
+            </dl>
+          </section>
         ))}
       </div>
-    </div>
+    </main>
   );
 }
 
