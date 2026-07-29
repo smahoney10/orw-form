@@ -40,6 +40,11 @@ function getSheetDataRows(worksheet, candidateHeaders = []) {
   return dataRows;
 }
 
+function getStateAbbreviationFromFileName(fileName) {
+  const match = String(fileName || '').match(/^Operational_Report_([A-Za-z]{2})_/i);
+  return match ? match[1].toUpperCase() : '';
+}
+
 function UploadValidationPage({ onBack }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -103,7 +108,11 @@ function UploadValidationPage({ onBack }) {
       const attestationsData = parseAttestations(attestationRows);
       const definitionsData = parseDefinitions(definitionRows);
       const metricData = parseMetricData(metricRows, definitionsData);
-      const settings = parseSettings(settingsRows);
+      const parsedSettings = parseSettings(settingsRows);
+      const settings = {
+        ...parsedSettings,
+        stateAbbreviation: parsedSettings.stateAbbreviation || getStateAbbreviationFromFileName(file.name),
+      };
       attestationsData.headers = attestationRows.headers || [];
       definitionsData.headers = definitionRows.headers || [];
       metricData.headers = metricRows.headers || [];
