@@ -110,7 +110,6 @@ function UploadValidationPage({ onBack }) {
         ...standardIssues,
         ...boxValidation.prechecks,
         ...boxValidation.checks,
-        ...boxValidation.attestationChecks,
       ];
 
       setResult({
@@ -190,19 +189,6 @@ function UploadValidationPage({ onBack }) {
                 </ul>
               ) : (
                 <p className="no-errors">No precheck issues found.</p>
-              )}
-            </div>
-
-            <div className="validation-section">
-              <h4>Attestation checks</h4>
-              {result.attestationChecks.length > 0 ? (
-                <ul>
-                  {result.attestationChecks.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="no-errors">No attestation issues found.</p>
               )}
             </div>
 
